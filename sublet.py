@@ -7,26 +7,11 @@ import getpass
 
 # -----------------------------------------------------------------------------
 
-def kill_all(RedditInstance):
-	print "\n\n Deleting Comments & Submissions for %s \n\n" % str(RedditInstance.user)
-	for item in RedditInstance.user.get_overview(sort="new", time="all", limit=None):
-		try:
-			item.delete()
-			print "Deleting: %s" % item.permalink
-		except:
-			print "\tERROR -> Deleting: %s" % item.permalink
-
-def kill_ini(RedditInstance, INI_USER):
-	RedditInstance.login(INI_USER[0], INI_USER[1], disable_warning=True)
-	kill_all(RedditInstance)
-
-# -----------------------------------------------------------------------------
-
 def get_all_saved(RedditInstance):
 	saved = []
 	for item in RedditInstance.user.get_saved(sort="new", time="all", limit=None):
-		saved.append(item)
-	return reversed(saved)
+		saved.insert(0, item)
+	return saved
 
 def save_all_saved(RedditInstance, saved):
 	for item in saved:
@@ -49,25 +34,24 @@ def transfer_saves(RedditInstance, INI_USER, NEW_USER):
 def get_all_subreddits(RedditInstance):
 	subreddits = []
 	for sub in RedditInstance.get_my_subreddits(limit=None):
-		subreddits.append(str(sub))
+		subreddits.append(sub)
 	return subreddits
 
 def unsubscribe_all_subreddits(RedditInstance):
 	for sub in RedditInstance.get_my_subreddits(limit=None):
-		subName = str(sub)
 		try:
-			RedditInstance.get_subreddit(subName).unsubscribe()
-			print "Unsubscribed: %s" % subName
+			sub.unsubscribe()
+			print "Unsubscribed: %s" % str(sub)
 		except:
-			print "\tERROR -> Unsubscribing: %s" % subName
+			print "\tERROR -> Unsubscribing: %s" % str(sub)
 
-def subscribe_all_subreddits(RedditInstance, subreddits):
-	for subName in subreddits:
+def subscribe_all_subreddits(subreddits):
+	for sub in subreddits:
 		try:
-			RedditInstance.get_subreddit(subName).subscribe()
-			print "Subscribed: %s" % subName
+			sub.subscribe()
+			print "Subscribed: %s" % str(sub)
 		except:
-			print "\tERROR -> Subscribing: %s" % subName
+			print "\tERROR -> Subscribing: %s" % str(sub)
 
 def transfer_subreddits(RedditInstance, INI_USER, NEW_USER):
 	print "\n\n Transferring Subreddits \n\n"
@@ -76,7 +60,7 @@ def transfer_subreddits(RedditInstance, INI_USER, NEW_USER):
 
 	RedditInstance.login(NEW_USER[0], NEW_USER[1], disable_warning=True)
 	unsubscribe_all_subreddits(RedditInstance)
-	subscribe_all_subreddits(RedditInstance, subreddits)
+	subscribe_all_subreddits(subreddits)
 
 # -----------------------------------------------------------------------------
 
@@ -95,14 +79,8 @@ if __name__ == "__main__":
 		NEW_USER[0] = raw_input()
 		NEW_USER[1] = getpass.getpass()
 
-		YES = set(['yes','y', 'ye', '', 't', 'true'])
-		NO = set(['no','n', 'f', 'false'])
-		print "\nDo you want to delete all the posts for the old user (y/n)?"
-		ynAnswer = raw_input().lower()
-
 		# Call methods
 
 		transfer_subreddits(R, INI_USER, NEW_USER)
 		transfer_saves(R, INI_USER, NEW_USER)
-		if ynAnswer in YES:
-			kill_ini(R, INI_USER)
+
